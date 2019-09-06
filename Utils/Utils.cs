@@ -62,7 +62,6 @@ namespace AutoCAD_PointsReader.Utils
                 double minY = double.MaxValue;
 
                 /*Записываю контур*/
-
                 for (int i = 0; i < outIds.Length; i++)
                 {
                     StringBuilder sb = new StringBuilder("M");
@@ -259,28 +258,65 @@ namespace AutoCAD_PointsReader.Utils
                         gElem.AppendChild(pathElem);
                     }
                 }
-                double width = Math.Round(maxX - minX) + 4;
-                double height = Math.Round(maxY - minY) + 4;
 
-                XmlAttribute svgAttr = xDoc.CreateAttribute("width");
-                XmlText svgText = xDoc.CreateTextNode(width.ToString());
-                svgAttr.AppendChild(svgText);
-                xRoot.Attributes.Append(svgAttr);
+                PromptIntegerOptions pIntOpts = new PromptIntegerOptions("");
+                pIntOpts.Message = "\nРазмер отступа: ";
 
-                svgAttr = xDoc.CreateAttribute("height");
-                svgText = xDoc.CreateTextNode(height.ToString());
-                svgAttr.AppendChild(svgText);
-                xRoot.Attributes.Append(svgAttr);
+                pIntOpts.AllowZero = true;
+                pIntOpts.AllowNegative = false;
 
-                svgAttr = xDoc.CreateAttribute("viewBox");
-                svgText = xDoc.CreateTextNode("0 0 " + width.ToString() + " " + height.ToString());
-                svgAttr.AppendChild(svgText);
-                xRoot.Attributes.Append(svgAttr);
+                pIntOpts.DefaultValue = 4;
+                pIntOpts.AllowNone = true;
 
-                svgAttr = xDoc.CreateAttribute("transform");
-                svgText = xDoc.CreateTextNode("translate(" + (2 - minX).ToString() + ", " + (2 - minY).ToString() + ")");
-                svgAttr.AppendChild(svgText);
-                gElem.Attributes.Append(svgAttr);
+                PromptIntegerResult pIntRes = ed.GetInteger(pIntOpts);
+                double delta = pIntRes.Value;
+                double deltaX = 0;
+                double deltaY = 0;
+
+                double width = Math.Round(maxX - minX);
+                double height = Math.Round(maxY - minY);
+
+                PromptKeywordOptions pKeyOpts = new PromptKeywordOptions("");
+                pKeyOpts.Message = "\nТип подрезки: ";
+                pKeyOpts.Keywords.Add("Квадрат");
+                pKeyOpts.Keywords.Add("Прямоугольник");
+                pKeyOpts.Keywords.Default = "Квадрат";
+                pKeyOpts.AllowNone = true;
+
+                PromptResult pKeyRes = ed.GetKeywords(pKeyOpts);
+
+                if (pKeyRes.StringResult.Equals("Квадрат"))
+                {
+                    if (width > height)
+                    {
+                        deltaY = (width - height)/2;
+                        height = width;
+                    } else if (height > width)
+                    {
+                        deltaX = (height - width)/2;
+                        width = height;
+                    }
+
+                    XmlAttribute svgAttr = xDoc.CreateAttribute("width");
+                    XmlText svgText = xDoc.CreateTextNode((width + delta*2).ToString());
+                    svgAttr.AppendChild(svgText);
+                    xRoot.Attributes.Append(svgAttr);
+
+                    svgAttr = xDoc.CreateAttribute("height");
+                    svgText = xDoc.CreateTextNode((height + delta*2).ToString());
+                    svgAttr.AppendChild(svgText);
+                    xRoot.Attributes.Append(svgAttr);
+
+                    svgAttr = xDoc.CreateAttribute("viewBox");
+                    svgText = xDoc.CreateTextNode("0 0 " + (width + delta*2).ToString() + " " + (height + delta*2).ToString());
+                    svgAttr.AppendChild(svgText);
+                    xRoot.Attributes.Append(svgAttr);
+
+                    svgAttr = xDoc.CreateAttribute("transform");
+                    svgText = xDoc.CreateTextNode("translate(" + (delta - minX + deltaX).ToString() + ", " + (delta - minY + deltaY).ToString() + ")");
+                    svgAttr.AppendChild(svgText);
+                    gElem.Attributes.Append(svgAttr);
+                }
 
                 xDoc.Save("profile.svg");
             }
