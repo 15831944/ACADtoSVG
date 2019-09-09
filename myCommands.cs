@@ -7,9 +7,9 @@ using Autodesk.AutoCAD.Geometry;
 using System;
 using System.IO;
 
-[assembly: CommandClass(typeof(AutoCAD_PointsReader.MyCommands))]
+[assembly: CommandClass(typeof(AutoCAD_SVG.MyCommands))]
 
-namespace AutoCAD_PointsReader
+namespace AutoCAD_SVG
 {
     public class MyCommands
     {

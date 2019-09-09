@@ -1,0 +1,17 @@
+C:\Users\princ\source\repos\AutoCAD PointsReader\AutoCAD PointsReader\bin\Debug\profiles.xml
+C:\Users\princ\source\repos\AutoCAD PointsReader\AutoCAD PointsReader\bin\Debug\AutoCAD PointsReader.dll
+C:\Users\princ\source\repos\AutoCAD PointsReader\AutoCAD PointsReader\bin\Debug\AutoCAD PointsReader.pdb
+C:\Users\princ\source\repos\AutoCAD PointsReader\AutoCAD PointsReader\obj\Debug\AutoCAD_PointsReader.MyCommands.resources
+C:\Users\princ\source\repos\AutoCAD PointsReader\AutoCAD PointsReader\obj\Debug\AutoCAD PointsReader.csproj.GenerateResource.cache
+C:\Users\princ\source\repos\AutoCAD PointsReader\AutoCAD PointsReader\obj\Debug\AutoCAD PointsReader.csproj.CoreCompileInputs.cache
+C:\Users\princ\source\repos\AutoCAD PointsReader\AutoCAD PointsReader\obj\Debug\AutoCAD PointsReader.dll
+C:\Users\princ\source\repos\AutoCAD PointsReader\AutoCAD PointsReader\obj\Debug\AutoCAD PointsReader.pdb
+C:\Users\E.Nikulina\Downloads\AutoCAD-master\AutoCAD-master\bin\Debug\AutoCAD PointsReader.dll
+C:\Users\E.Nikulina\Downloads\AutoCAD-master\AutoCAD-master\bin\Debug\AutoCAD PointsReader.pdb
+C:\Users\E.Nikulina\Downloads\AutoCAD-master\AutoCAD-master\obj\Debug\AutoCAD PointsReader.csprojAssemblyReference.cache
+C:\Users\E.Nikulina\Downloads\AutoCAD-master\AutoCAD-master\obj\Debug\AutoCAD_PointsReader.MyCommands.resources
+C:\Users\E.Nikulina\Downloads\AutoCAD-master\AutoCAD-master\obj\Debug\AutoCAD PointsReader.csproj.GenerateResource.cache
+C:\Users\E.Nikulina\Downloads\AutoCAD-master\AutoCAD-master\obj\Debug\AutoCAD PointsReader.csproj.CoreCompileInputs.cache
+C:\Users\E.Nikulina\Downloads\AutoCAD-master\AutoCAD-master\obj\Debug\AutoCAD PointsReader.dll
+C:\Users\E.Nikulina\Downloads\AutoCAD-master\AutoCAD-master\obj\Debug\AutoCAD PointsReader.pdb
+C:\Users\E.Nikulina\Downloads\AutoCAD-master\AutoCAD-master\bin\Debug\profile.svg

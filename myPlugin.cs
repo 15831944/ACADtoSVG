@@ -5,9 +5,9 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.EditorInput;
 
-[assembly: ExtensionApplication(typeof(AutoCAD_PointsReader.MyPlugin))]
+[assembly: ExtensionApplication(typeof(AutoCAD_SVG.MyPlugin))]
 
-namespace AutoCAD_PointsReader
+namespace AutoCAD_SVG
 {
     public class MyPlugin : IExtensionApplication
     {

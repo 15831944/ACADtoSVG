@@ -6,11 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace AutoCAD_PointsReader.Utils
+namespace AutoCAD_SVG.Utils
 {
     class Utils
     {
@@ -46,14 +47,22 @@ namespace AutoCAD_PointsReader.Utils
                 ObjectId[] outIds = outSS.GetObjectIds();
 
                 XmlDocument xDoc = new XmlDocument();
-                xDoc.Load("profile.svg");
-                XmlElement xRoot = xDoc.DocumentElement;
-
+                string dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                XmlElement xRoot = xDoc.CreateElement("svg");
+                XmlAttribute xAttr = xDoc.CreateAttribute("version");
+                XmlText xText = xDoc.CreateTextNode("1.1");
+                xAttr.AppendChild(xText);
+                xRoot.Attributes.Append(xAttr);
+                xAttr = xDoc.CreateAttribute("baseProfile");
+                xText = xDoc.CreateTextNode("full");
+                xAttr.AppendChild(xText);
+                xRoot.Attributes.Append(xAttr);
+                
                 XmlElement gElem = xDoc.CreateElement("g");
-                XmlAttribute styleAttr = xDoc.CreateAttribute("style");
-                XmlText styleText = xDoc.CreateTextNode("fill:none;stroke-opacity:1;fill:none; stroke-width:0.3;");
-                styleAttr.AppendChild(styleText);
-                gElem.Attributes.Append(styleAttr);
+                XmlAttribute gAttr = xDoc.CreateAttribute("style");
+                XmlText gText = xDoc.CreateTextNode("fill:none;stroke-opacity:1;fill:none; stroke-width:0.3;");
+                gAttr.AppendChild(gText);
+                gElem.Attributes.Append(gAttr);
                 xRoot.AppendChild(gElem);
 
                 double maxX = double.MinValue;
@@ -265,7 +274,7 @@ namespace AutoCAD_PointsReader.Utils
                 pIntOpts.AllowZero = true;
                 pIntOpts.AllowNegative = false;
 
-                pIntOpts.DefaultValue = 4;
+                pIntOpts.DefaultValue = 2;
                 pIntOpts.AllowNone = true;
 
                 PromptIntegerResult pIntRes = ed.GetInteger(pIntOpts);
@@ -318,7 +327,8 @@ namespace AutoCAD_PointsReader.Utils
                     gElem.Attributes.Append(svgAttr);
                 }
 
-                xDoc.Save("profile.svg");
+                xDoc.AppendChild(xRoot);
+                xDoc.Save(Path.Combine(dir, (Path.GetFileNameWithoutExtension(MyPlugin.doc.Name) + ".svg")));
             }
         }
     }

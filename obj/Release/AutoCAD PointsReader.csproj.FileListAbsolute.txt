@@ -1,0 +1,8 @@
+C:\Users\princ\source\repos\AutoCAD PointsReader\AutoCAD PointsReader\bin\Release\profiles.xml
+C:\Users\princ\source\repos\AutoCAD PointsReader\AutoCAD PointsReader\bin\Release\AutoCAD PointsReader.dll
+C:\Users\princ\source\repos\AutoCAD PointsReader\AutoCAD PointsReader\bin\Release\AutoCAD PointsReader.pdb
+C:\Users\princ\source\repos\AutoCAD PointsReader\AutoCAD PointsReader\obj\Release\AutoCAD_PointsReader.MyCommands.resources
+C:\Users\princ\source\repos\AutoCAD PointsReader\AutoCAD PointsReader\obj\Release\AutoCAD PointsReader.csproj.GenerateResource.cache
+C:\Users\princ\source\repos\AutoCAD PointsReader\AutoCAD PointsReader\obj\Release\AutoCAD PointsReader.csproj.CoreCompileInputs.cache
+C:\Users\princ\source\repos\AutoCAD PointsReader\AutoCAD PointsReader\obj\Release\AutoCAD PointsReader.dll
+C:\Users\princ\source\repos\AutoCAD PointsReader\AutoCAD PointsReader\obj\Release\AutoCAD PointsReader.pdb
