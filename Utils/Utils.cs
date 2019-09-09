@@ -305,27 +305,27 @@ namespace AutoCAD_SVG.Utils
                         deltaX = (height - width)/2;
                         width = height;
                     }
-
-                    XmlAttribute svgAttr = xDoc.CreateAttribute("width");
-                    XmlText svgText = xDoc.CreateTextNode((width + delta*2).ToString());
-                    svgAttr.AppendChild(svgText);
-                    xRoot.Attributes.Append(svgAttr);
-
-                    svgAttr = xDoc.CreateAttribute("height");
-                    svgText = xDoc.CreateTextNode((height + delta*2).ToString());
-                    svgAttr.AppendChild(svgText);
-                    xRoot.Attributes.Append(svgAttr);
-
-                    svgAttr = xDoc.CreateAttribute("viewBox");
-                    svgText = xDoc.CreateTextNode("0 0 " + (width + delta*2).ToString() + " " + (height + delta*2).ToString());
-                    svgAttr.AppendChild(svgText);
-                    xRoot.Attributes.Append(svgAttr);
-
-                    svgAttr = xDoc.CreateAttribute("transform");
-                    svgText = xDoc.CreateTextNode("translate(" + (delta - minX + deltaX).ToString() + ", " + (delta - minY + deltaY).ToString() + ")");
-                    svgAttr.AppendChild(svgText);
-                    gElem.Attributes.Append(svgAttr);
                 }
+
+                XmlAttribute svgAttr = xDoc.CreateAttribute("width");
+                XmlText svgText = xDoc.CreateTextNode((width + delta * 2).ToString());
+                svgAttr.AppendChild(svgText);
+                xRoot.Attributes.Append(svgAttr);
+
+                svgAttr = xDoc.CreateAttribute("height");
+                svgText = xDoc.CreateTextNode((height + delta * 2).ToString());
+                svgAttr.AppendChild(svgText);
+                xRoot.Attributes.Append(svgAttr);
+
+                svgAttr = xDoc.CreateAttribute("viewBox");
+                svgText = xDoc.CreateTextNode("0 0 " + (width + delta * 2).ToString() + " " + (height + delta * 2).ToString());
+                svgAttr.AppendChild(svgText);
+                xRoot.Attributes.Append(svgAttr);
+
+                svgAttr = xDoc.CreateAttribute("transform");
+                svgText = xDoc.CreateTextNode("translate(" + (delta - minX + deltaX).ToString() + ", " + (delta - minY + deltaY).ToString() + ")");
+                svgAttr.AppendChild(svgText);
+                gElem.Attributes.Append(svgAttr);
 
                 xDoc.AppendChild(xRoot);
                 xDoc.Save(Path.Combine(dir, (Path.GetFileNameWithoutExtension(MyPlugin.doc.Name) + ".svg")));
