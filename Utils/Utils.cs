@@ -75,6 +75,7 @@ namespace AutoCAD_SVG.Utils
                 {
                     StringBuilder sb = new StringBuilder("M");
                     System.Drawing.Color color;
+                    LayerTableRecord layer;
 
                     /* ПОЛИЛИНИЯ */
                     if (outIds[i].ObjectClass.DxfName.Equals("LWPOLYLINE"))
@@ -85,9 +86,21 @@ namespace AutoCAD_SVG.Utils
                         {
                             Polyline polyline;
                             polyline = transaction.GetObject(outIds[i], OpenMode.ForRead) as Polyline;
-                            color = polyline.Color.ColorValue;
+                            
+                            /* цвет по слою */
+                            ColorMethod colorMethod = polyline.Color.ColorMethod;
+                            if (colorMethod == ColorMethod.ByLayer)
+                            {
+                                layer = transaction.GetObject(polyline.LayerId, OpenMode.ForRead) as LayerTableRecord;
+                                color = layer.Color.ColorValue;
+                            } 
+                            else
+                            {
+                                color = polyline.Color.ColorValue;
+                            }
 
                             int isClockWise = 1;
+                            int isLargeArc = 1;
                             double b = polyline.GetBulgeAt(0);
                             double x0 = polyline.GetPoint3dAt(0).X;
                             double y0 = polyline.GetPoint3dAt(0).Y;
@@ -123,12 +136,19 @@ namespace AutoCAD_SVG.Utils
                                     {
                                         isClockWise = 1;
                                     }
+                                    if (b < 1)
+                                    {
+                                        isLargeArc = 0;
+                                    } else
+                                    {
+                                        isLargeArc = 1;
+                                    }
                                     double angle = 4 * Math.Atan(b);
                                     double d = Math.Sqrt(Math.Pow(x1 - x0, 2) + Math.Pow(y1 - y0, 2)) / 2;
                                     double r = d / Math.Sin(angle / 2);
 
                                     sb.Append(" A " + r.ToString() + "," + r.ToString() + " " + (angle * 180 / Math.PI).ToString() +
-                                              " 0," + isClockWise.ToString() + " " + x1 + "," + y1);
+                                              " " + isLargeArc.ToString() + "," + isClockWise.ToString() + " " + x1 + "," + y1);
                                 }
                                 b = polyline.GetBulgeAt(j);
 
@@ -167,6 +187,7 @@ namespace AutoCAD_SVG.Utils
                         XmlAttribute strokeAttr = xDoc.CreateAttribute("stroke");
                         StringBuilder strokeString = new StringBuilder("#");
 
+                        /* Определение цвета контура */
                         string colorString =color.Name;
                         string RGB = colorString.Substring(2, 6);
 
@@ -191,7 +212,19 @@ namespace AutoCAD_SVG.Utils
                         {
                             Line line;
                             line = transaction.GetObject(outIds[i], OpenMode.ForRead) as Line;
-                            color = line.Color.ColorValue;
+
+                            /* цвет по слою */
+                            ColorMethod colorMethod = line.Color.ColorMethod;
+                            if (colorMethod == ColorMethod.ByLayer)
+                            {
+                                layer = transaction.GetObject(line.LayerId, OpenMode.ForRead) as LayerTableRecord;
+                                color = layer.Color.ColorValue;
+                            }
+                            else
+                            {
+                                color = line.Color.ColorValue;
+                            }
+
                             sb.Append(" " + line.StartPoint.X.ToString() + "," + line.StartPoint.Y.ToString() + " L " + line.EndPoint.X.ToString() + "," + line.EndPoint.Y.ToString());
                         }
 
@@ -229,7 +262,18 @@ namespace AutoCAD_SVG.Utils
                         {
                             Circle circle;
                             circle = transaction.GetObject(outIds[i], OpenMode.ForRead) as Circle;
-                            color = circle.Color.ColorValue;
+
+                            /* цвет по слою */
+                            ColorMethod colorMethod = circle.Color.ColorMethod;
+                            if (colorMethod == ColorMethod.ByLayer)
+                            {
+                                layer = transaction.GetObject(circle.LayerId, OpenMode.ForRead) as LayerTableRecord;
+                                color = layer.Color.ColorValue;
+                            }
+                            else
+                            {
+                                color = circle.Color.ColorValue;
+                            }
 
                             XmlAttribute strokeAttr = xDoc.CreateAttribute("stroke");
                             StringBuilder strokeString = new StringBuilder("#");

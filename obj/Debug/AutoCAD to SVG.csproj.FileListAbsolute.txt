@@ -1,0 +1,8 @@
+C:\Users\E.Nikulina\Downloads\AutoCAD-master\AutoCAD-master\bin\Debug\AutoCAD SVG.dll
+C:\Users\E.Nikulina\Downloads\AutoCAD-master\AutoCAD-master\bin\Debug\AutoCAD SVG.pdb
+C:\Users\E.Nikulina\Downloads\AutoCAD-master\AutoCAD-master\obj\Debug\AutoCAD_SVG.MyCommands.resources
+C:\Users\E.Nikulina\Downloads\AutoCAD-master\AutoCAD-master\obj\Debug\AutoCAD to SVG.csproj.GenerateResource.cache
+C:\Users\E.Nikulina\Downloads\AutoCAD-master\AutoCAD-master\obj\Debug\AutoCAD to SVG.csproj.CoreCompileInputs.cache
+C:\Users\E.Nikulina\Downloads\AutoCAD-master\AutoCAD-master\obj\Debug\AutoCAD SVG.dll
+C:\Users\E.Nikulina\Downloads\AutoCAD-master\AutoCAD-master\obj\Debug\AutoCAD SVG.pdb
+C:\Users\E.Nikulina\Downloads\AutoCAD-master\AutoCAD-master\obj\Debug\AutoCAD to SVG.csprojAssemblyReference.cache
