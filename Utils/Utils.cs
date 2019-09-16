@@ -18,82 +18,46 @@ namespace AutoCAD_SVG.Utils
         /// <summary>
         /// Команда выводит список точек построения объекта
         /// </summary>
-        public static void ConvertToSVG()
+        public static string ConvertToSVG(ObjectId[] objIds, double indent, bool isSquareTrimming)
         {
-            Editor ed;
-            if (MyPlugin.doc != null)
+            /* "корень" SVG-файла */
+            XmlDocument document = new XmlDocument();
+            string dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            XmlElement root = CreateSVGRoot(document);
+
+            /* группа, в которой будут записаны все контуры */
+            XmlElement group = CreateSVGGroup("g", root, document);
+
+            /* максимальные и минимальные координаты (для определения размеров отображаемой области) */
+            double maxX = double.MinValue;
+            double maxY = double.MinValue;
+            double minX = double.MaxValue;
+            double minY = double.MaxValue;
+
+            /* Запись контура */
+            for (int i = 0; i < objIds.Length; i++)
             {
-                ed = MyPlugin.doc.Editor;
+                StringBuilder sb = new StringBuilder("M");
+                System.Drawing.Color color;
+                LayerTableRecord layer;
 
-                /*считываем контур*/
-                PromptSelectionResult outResult = null;
-                PromptSelectionOptions psoOptions = new PromptSelectionOptions();
-                psoOptions.SingleOnly = false;
-                psoOptions.SinglePickInSpace = true;
-                psoOptions.MessageForAdding = "Выберите контур";
-
-                TypedValue[] acTypValAr = new TypedValue[5];
-                acTypValAr.SetValue(new TypedValue((int)DxfCode.Operator, "<or"), 0);
-                acTypValAr.SetValue(new TypedValue((int)DxfCode.Start, "LWPOLYLINE"), 1);
-                acTypValAr.SetValue(new TypedValue((int)DxfCode.Start, "CIRCLE"), 2);
-                acTypValAr.SetValue(new TypedValue((int)DxfCode.Start, "LINE"), 3);
-                acTypValAr.SetValue(new TypedValue((int)DxfCode.Operator, "or>"), 4);
-                SelectionFilter selectionFilter = new SelectionFilter(acTypValAr);
-
-                outResult = ed.GetSelection(psoOptions, selectionFilter);
-                if (outResult.Status != PromptStatus.OK)
-                    return;
-                SelectionSet outSS = outResult.Value;
-                ObjectId[] outIds = outSS.GetObjectIds();
-
-                XmlDocument xDoc = new XmlDocument();
-                string dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                XmlElement xRoot = xDoc.CreateElement("svg");
-                XmlAttribute xAttr = xDoc.CreateAttribute("version");
-                XmlText xText = xDoc.CreateTextNode("1.1");
-                xAttr.AppendChild(xText);
-                xRoot.Attributes.Append(xAttr);
-                xAttr = xDoc.CreateAttribute("baseProfile");
-                xText = xDoc.CreateTextNode("full");
-                xAttr.AppendChild(xText);
-                xRoot.Attributes.Append(xAttr);
-                
-                XmlElement gElem = xDoc.CreateElement("g");
-                XmlAttribute gAttr = xDoc.CreateAttribute("style");
-                XmlText gText = xDoc.CreateTextNode("fill:none;stroke-opacity:1;fill:none; stroke-width:0.3;");
-                gAttr.AppendChild(gText);
-                gElem.Attributes.Append(gAttr);
-                xRoot.AppendChild(gElem);
-
-                double maxX = double.MinValue;
-                double maxY = double.MinValue;
-                double minX = double.MaxValue;
-                double minY = double.MaxValue;
-
-                /*Записываю контур*/
-                for (int i = 0; i < outIds.Length; i++)
+                /* ПОЛИЛИНИЯ */
+                if (objIds[i].ObjectClass.DxfName.Equals("LWPOLYLINE"))
                 {
-                    StringBuilder sb = new StringBuilder("M");
-                    System.Drawing.Color color;
-                    LayerTableRecord layer;
-
-                    /* ПОЛИЛИНИЯ */
-                    if (outIds[i].ObjectClass.DxfName.Equals("LWPOLYLINE"))
+                    XmlElement pathElem = document.CreateElement("path");
+                    
+                    using (Transaction transaction = MyPlugin.doc.Database.TransactionManager.StartTransaction())
                     {
-                        XmlElement pathElem = xDoc.CreateElement("path");
-                        
-                        using (Transaction transaction = MyPlugin.doc.Database.TransactionManager.StartTransaction())
+                        Polyline polyline;
+                        polyline = transaction.GetObject(objIds[i], OpenMode.ForRead) as Polyline;
+                    
+                        /* цвет по слою */
+                        ColorMethod colorMethod = polyline.Color.ColorMethod;
+                        if (colorMethod == ColorMethod.ByLayer)
                         {
-                            Polyline polyline;
-                            polyline = transaction.GetObject(outIds[i], OpenMode.ForRead) as Polyline;
-                            
-                            /* цвет по слою */
-                            ColorMethod colorMethod = polyline.Color.ColorMethod;
-                            if (colorMethod == ColorMethod.ByLayer)
-                            {
-                                layer = transaction.GetObject(polyline.LayerId, OpenMode.ForRead) as LayerTableRecord;
-                                color = layer.Color.ColorValue;
-                            } 
+                            layer = transaction.GetObject(polyline.LayerId, OpenMode.ForRead) as LayerTableRecord;
+                            color = layer.Color.ColorValue;
+                        } 
                             else
                             {
                                 color = polyline.Color.ColorValue;
@@ -184,7 +148,7 @@ namespace AutoCAD_SVG.Utils
                                 sb.Append(" z");
                         }
 
-                        XmlAttribute strokeAttr = xDoc.CreateAttribute("stroke");
+                        XmlAttribute strokeAttr = document.CreateAttribute("stroke");
                         StringBuilder strokeString = new StringBuilder("#");
 
                         /* Определение цвета контура */
@@ -192,26 +156,26 @@ namespace AutoCAD_SVG.Utils
                         string RGB = colorString.Substring(2, 6);
 
                         strokeString.Append(RGB);
-                        XmlText strokeText = xDoc.CreateTextNode(strokeString.ToString());
+                        XmlText strokeText = document.CreateTextNode(strokeString.ToString());
                         strokeAttr.AppendChild(strokeText);
                         pathElem.Attributes.Append(strokeAttr);
 
-                        XmlAttribute dAttr = xDoc.CreateAttribute("d");
-                        XmlText dText = xDoc.CreateTextNode(sb.ToString());
+                        XmlAttribute dAttr = document.CreateAttribute("d");
+                        XmlText dText = document.CreateTextNode(sb.ToString());
                         dAttr.AppendChild(dText);
                         pathElem.Attributes.Append(dAttr);
-                        gElem.AppendChild(pathElem);
+                        group.AppendChild(pathElem);
                     }
 
                     /* ЛИНИЯ */
-                    if (outIds[i].ObjectClass.DxfName.Equals("LINE"))
+                    if (objIds[i].ObjectClass.DxfName.Equals("LINE"))
                     {
-                        XmlElement pathElem = xDoc.CreateElement("path");
+                        XmlElement pathElem = document.CreateElement("path");
 
                         using (Transaction transaction = MyPlugin.doc.Database.TransactionManager.StartTransaction())
                         {
                             Line line;
-                            line = transaction.GetObject(outIds[i], OpenMode.ForRead) as Line;
+                            line = transaction.GetObject(objIds[i], OpenMode.ForRead) as Line;
 
                             /* цвет по слою */
                             ColorMethod colorMethod = line.Color.ColorMethod;
@@ -228,7 +192,7 @@ namespace AutoCAD_SVG.Utils
                             sb.Append(" " + line.StartPoint.X.ToString() + "," + line.StartPoint.Y.ToString() + " L " + line.EndPoint.X.ToString() + "," + line.EndPoint.Y.ToString());
                         }
 
-                        XmlAttribute strokeAttr = xDoc.CreateAttribute("stroke");
+                        XmlAttribute strokeAttr = document.CreateAttribute("stroke");
                         StringBuilder strokeString = new StringBuilder("#");
                         byte R = color.R;
                         byte G = color.G;
@@ -242,26 +206,26 @@ namespace AutoCAD_SVG.Utils
                         if (B < 16)
                             strokeString.Append("0");
                         strokeString.Append(B.ToString("X"));
-                        XmlText strokeText = xDoc.CreateTextNode(strokeString.ToString());
+                        XmlText strokeText = document.CreateTextNode(strokeString.ToString());
                         strokeAttr.AppendChild(strokeText);
                         pathElem.Attributes.Append(strokeAttr);
 
-                        XmlAttribute dAttr = xDoc.CreateAttribute("d");
-                        XmlText dText = xDoc.CreateTextNode(sb.ToString());
+                        XmlAttribute dAttr = document.CreateAttribute("d");
+                        XmlText dText = document.CreateTextNode(sb.ToString());
                         dAttr.AppendChild(dText);
                         pathElem.Attributes.Append(dAttr);
-                        gElem.AppendChild(pathElem);
+                        group.AppendChild(pathElem);
                     }
 
                     /* КРУГ */
-                    if (outIds[i].ObjectClass.DxfName.Equals("CIRCLE"))
+                    if (objIds[i].ObjectClass.DxfName.Equals("CIRCLE"))
                     {
-                        XmlElement pathElem = xDoc.CreateElement("circle");
+                        XmlElement pathElem = document.CreateElement("circle");
 
                         using (Transaction transaction = MyPlugin.doc.Database.TransactionManager.StartTransaction())
                         {
                             Circle circle;
-                            circle = transaction.GetObject(outIds[i], OpenMode.ForRead) as Circle;
+                            circle = transaction.GetObject(objIds[i], OpenMode.ForRead) as Circle;
 
                             /* цвет по слою */
                             ColorMethod colorMethod = circle.Color.ColorMethod;
@@ -275,7 +239,7 @@ namespace AutoCAD_SVG.Utils
                                 color = circle.Color.ColorValue;
                             }
 
-                            XmlAttribute strokeAttr = xDoc.CreateAttribute("stroke");
+                            XmlAttribute strokeAttr = document.CreateAttribute("stroke");
                             StringBuilder strokeString = new StringBuilder("#");
                             byte R = color.R;
                             byte G = color.G;
@@ -289,91 +253,106 @@ namespace AutoCAD_SVG.Utils
                             if (B < 16)
                                 strokeString.Append("0");
                             strokeString.Append(B.ToString("X"));
-                            XmlText strokeText = xDoc.CreateTextNode(strokeString.ToString());
+                            XmlText strokeText = document.CreateTextNode(strokeString.ToString());
                             strokeAttr.AppendChild(strokeText);
                             pathElem.Attributes.Append(strokeAttr);
 
-                            XmlAttribute rAttr = xDoc.CreateAttribute("r");
-                            XmlText rText = xDoc.CreateTextNode(circle.Radius.ToString());
+                            XmlAttribute rAttr = document.CreateAttribute("r");
+                            XmlText rText = document.CreateTextNode(circle.Radius.ToString());
                             rAttr.AppendChild(rText);
                             pathElem.Attributes.Append(rAttr);
 
-                            XmlAttribute cxAttr = xDoc.CreateAttribute("cx");
-                            XmlText cxText = xDoc.CreateTextNode(circle.Center.X.ToString());
+                            XmlAttribute cxAttr = document.CreateAttribute("cx");
+                            XmlText cxText = document.CreateTextNode(circle.Center.X.ToString());
                             cxAttr.AppendChild(cxText);
                             pathElem.Attributes.Append(cxAttr);
 
-                            XmlAttribute cyAttr = xDoc.CreateAttribute("cy");
-                            XmlText cyText = xDoc.CreateTextNode(circle.Center.Y.ToString());
+                            XmlAttribute cyAttr = document.CreateAttribute("cy");
+                            XmlText cyText = document.CreateTextNode(circle.Center.Y.ToString());
                             cyAttr.AppendChild(cyText);
                             pathElem.Attributes.Append(cyAttr);
                         }
-                        gElem.AppendChild(pathElem);
+                        group.AppendChild(pathElem);
                     }
                 }
 
-                PromptIntegerOptions pIntOpts = new PromptIntegerOptions("");
-                pIntOpts.Message = "\nРазмер отступа: ";
-
-                pIntOpts.AllowZero = true;
-                pIntOpts.AllowNegative = false;
-
-                pIntOpts.DefaultValue = 2;
-                pIntOpts.AllowNone = true;
-
-                PromptIntegerResult pIntRes = ed.GetInteger(pIntOpts);
-                double delta = pIntRes.Value;
-                double deltaX = 0;
-                double deltaY = 0;
-
-                double width = Math.Round(maxX - minX);
-                double height = Math.Round(maxY - minY);
-
-                PromptKeywordOptions pKeyOpts = new PromptKeywordOptions("");
-                pKeyOpts.Message = "\nТип подрезки: ";
-                pKeyOpts.Keywords.Add("Квадрат");
-                pKeyOpts.Keywords.Add("Прямоугольник");
-                pKeyOpts.Keywords.Default = "Квадрат";
-                pKeyOpts.AllowNone = true;
-
-                PromptResult pKeyRes = ed.GetKeywords(pKeyOpts);
-
-                if (pKeyRes.StringResult.Equals("Квадрат"))
+            double indentX = 0;                      // отступ по X
+            double indentY = 0;                      // отступ по Y
+            double width = Math.Round(maxX - minX);  // ширина видимой области
+            double height = Math.Round(maxY - minY); // высота видимой области
+            
+            /* Определение формы видимой области */
+            if (isSquareTrimming)
+            {
+                if (width > height)
                 {
-                    if (width > height)
-                    {
-                        deltaY = (width - height)/2;
-                        height = width;
-                    } else if (height > width)
-                    {
-                        deltaX = (height - width)/2;
-                        width = height;
-                    }
+                    indentY = (width - height) / 2;
+                    height = width;
                 }
-
-                XmlAttribute svgAttr = xDoc.CreateAttribute("width");
-                XmlText svgText = xDoc.CreateTextNode((width + delta * 2).ToString());
-                svgAttr.AppendChild(svgText);
-                xRoot.Attributes.Append(svgAttr);
-
-                svgAttr = xDoc.CreateAttribute("height");
-                svgText = xDoc.CreateTextNode((height + delta * 2).ToString());
-                svgAttr.AppendChild(svgText);
-                xRoot.Attributes.Append(svgAttr);
-
-                svgAttr = xDoc.CreateAttribute("viewBox");
-                svgText = xDoc.CreateTextNode("0 0 " + (width + delta * 2).ToString() + " " + (height + delta * 2).ToString());
-                svgAttr.AppendChild(svgText);
-                xRoot.Attributes.Append(svgAttr);
-
-                svgAttr = xDoc.CreateAttribute("transform");
-                svgText = xDoc.CreateTextNode("translate(" + (delta - minX + deltaX).ToString() + ", " + (delta - minY + deltaY).ToString() + ")");
-                svgAttr.AppendChild(svgText);
-                gElem.Attributes.Append(svgAttr);
-
-                xDoc.AppendChild(xRoot);
-                xDoc.Save(Path.Combine(dir, (Path.GetFileNameWithoutExtension(MyPlugin.doc.Name) + ".svg")));
+                else if (height > width)
+                {
+                    indentX = (height - width) / 2;
+                    width = height;
+                }
             }
+
+            AddDimensions(root, document, width + indent * 2, height + indent * 2);
+
+            XmlAttribute svgAttr = document.CreateAttribute("transform");
+            XmlText svgText = document.CreateTextNode("translate(" + (indent - minX + indentX).ToString() + ", " + (indent - minY + indentY).ToString() + ")");
+            svgAttr.AppendChild(svgText);
+            group.Attributes.Append(svgAttr);
+
+            document.AppendChild(root);
+            string fullName = Path.Combine(dir, (Path.GetFileNameWithoutExtension(MyPlugin.doc.Name) + ".svg"));
+            document.Save(fullName);
+
+            return fullName;
+        }
+
+        private static XmlElement CreateSVGRoot(XmlDocument document)
+        {
+            XmlElement root = document.CreateElement("svg");
+            XmlAttribute attribute = document.CreateAttribute("version");
+            XmlText xText = document.CreateTextNode("1.1");
+            attribute.AppendChild(xText);
+            root.Attributes.Append(attribute);
+            attribute = document.CreateAttribute("baseProfile");
+            xText = document.CreateTextNode("full");
+            attribute.AppendChild(xText);
+            root.Attributes.Append(attribute);
+
+            return root;
+        }
+
+        private static XmlElement CreateSVGGroup(string groupName, XmlElement root, XmlDocument document)
+        {
+            XmlElement group = document.CreateElement(groupName);
+            XmlAttribute attribute = document.CreateAttribute("style");
+            XmlText text = document.CreateTextNode("fill:none;stroke-opacity:1;fill:none; stroke-width:0.2;");
+            attribute.AppendChild(text);
+            group.Attributes.Append(attribute);
+            root.AppendChild(group);
+
+            return group;
+        }
+
+        private static void AddDimensions(XmlElement element, XmlDocument document , double width, double height)
+        {
+            XmlAttribute svgAttr = document.CreateAttribute("width");
+            XmlText svgText = document.CreateTextNode(width.ToString());
+            svgAttr.AppendChild(svgText);
+            element.Attributes.Append(svgAttr);
+
+            svgAttr = document.CreateAttribute("height");
+            svgText = document.CreateTextNode(height.ToString());
+            svgAttr.AppendChild(svgText);
+            element.Attributes.Append(svgAttr);
+
+            svgAttr = document.CreateAttribute("viewBox");
+            svgText = document.CreateTextNode("0 0 " + width.ToString() + " " + height.ToString());
+            svgAttr.AppendChild(svgText);
+            element.Attributes.Append(svgAttr);
         }
     }
 }
